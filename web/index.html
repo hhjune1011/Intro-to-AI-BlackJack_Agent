@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blackjack Lab · AI 시뮬레이터</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">♠</span><div>BLACKJACK <b>LAB</b><small>두 AI의 선택을 관찰하는 실험실</small></div></div>
+    <div class="header-actions"><span class="tag">PYTHON × EXPECTIMAX</span><button id="settings-button" class="light">설정 / 새 게임</button></div>
+  </header>
+  <main>
+    <section class="heading"><div><p class="eyebrow">MULTI-AGENT SIMULATION</p><h1>한 번의 선택, 다음 상태.</h1><p>한 플레이어가 Stand 또는 Bust로 턴을 마친 뒤 다음 플레이어가 진행합니다.</p></div><div class="round-box"><span>현재 라운드</span><strong id="round">— <small>/ 5</small></strong></div></section>
+    <div id="error" class="error" role="alert" hidden></div>
+    <section id="flow" class="flow" aria-label="라운드 진행 순서"></section>
+    <div class="workspace">
+      <section class="game-column">
+        <div class="table-head"><span><i class="dot"></i> 공개 카드 테이블</span><span id="remaining">52장의 공용 덱</span></div>
+        <section class="felt" aria-label="게임 테이블">
+          <div class="table-watermark">BLACKJACK LAB</div>
+          <article id="agent-D" class="seat dealer"><div class="seat-title"><div><span class="avatar">♠</span><b>딜러</b><small>17 미만 Hit</small></div><span class="status">대기</span></div><div class="cards"></div><div class="hand-summary"><span>합계</span><strong class="score">0</strong></div></article>
+          <div id="turn-banner" class="turn-banner" aria-live="polite">설정을 확인하고 시뮬레이션을 시작하세요.</div>
+          <div class="players">
+            <article id="agent-A" class="seat"><div class="seat-title"><div><span class="avatar a">A</span><b>플레이어 A</b></div><span class="status">대기</span></div><div class="cards"></div><div class="hand-summary"><span>합계</span><strong class="score">0</strong><span class="hit-count">Hit 0회</span></div><div class="money"><div><span>보유 칩</span><strong class="capital">1,000</strong></div><div><span>베팅</span><strong class="bet">—</strong></div></div></article>
+            <article id="agent-B" class="seat"><div class="seat-title"><div><span class="avatar b">B</span><b>플레이어 B</b></div><span class="status">대기</span></div><div class="cards"></div><div class="hand-summary"><span>합계</span><strong class="score">0</strong><span class="hit-count">Hit 0회</span></div><div class="money"><div><span>보유 칩</span><strong class="capital">1,000</strong></div><div><span>베팅</span><strong class="bet">—</strong></div></div></article>
+          </div>
+        </section>
+        <section class="transition-panel"><div class="section-label">STATE → ACTION → NEXT STATE</div><div class="transition-main"><span id="action" class="action-pill">READY</span><p id="transition">베팅과 Hit / Stand는 AI가 직접 선택합니다.</p></div><div class="transition-footer"><span id="reward">라운드 Reward · —</span><span id="difference">자본 차이 · 0</span></div><details><summary>이전 / 다음 State 자세히</summary><div class="state-grid"><pre id="before-state">—</pre><pre id="after-state">—</pre></div></details></section>
+      </section>
+      <aside class="inspector">
+        <div class="tabs" role="tablist"><button class="tab active" data-tab="analysis" role="tab" aria-selected="true">의사결정</button><button class="tab" data-tab="history" role="tab" aria-selected="false">이벤트 기록</button><button class="tab" data-tab="results" role="tab" aria-selected="false">결과 분석</button></div>
+        <section id="panel-analysis" class="tab-panel"><div class="inspector-title"><div><p class="eyebrow">INSIDE THE AGENT</p><h2>왜 이 행동을 골랐을까?</h2></div><div class="segmented"><button class="selected" data-player="A">A</button><button data-player="B">B</button></div></div><p id="analysis-context" class="muted">첫 의사결정을 기다리고 있습니다.</p><div id="utilities" class="utilities"><div class="empty">AI의 행동별 기대 효용이<br>여기에 표시됩니다.</div></div><div id="decision" class="decision" hidden></div><div class="metrics"><div><span>탐색 깊이</span><b id="depth">—</b></div><div><span>평가 노드</span><b id="nodes">—</b></div><div><span>말단당 표본</span><b id="samples">—</b></div></div><h3>작은 Expectimax 트리</h3><div id="search-tree" class="search-tree"><span class="muted">MAX → Chance → 다음 상태</span></div><h3>다음 카드의 확률</h3><div id="probabilities" class="probabilities"></div><p class="note">EU = 최종 승리 확률 + 0.5 × 무승부 확률의 근사값입니다. 미래 턴은 17 미만 Hit·최소 베팅 정책으로 예측합니다.</p><details><summary>Observation · 전체 탐색 정보</summary><pre id="report">—</pre></details></section>
+        <section id="panel-history" class="tab-panel" hidden><div class="inspector-title"><div><p class="eyebrow">EVENT TIMELINE</p><h2>상태가 바뀌는 순간</h2></div></div><p class="muted">기록을 선택해도 실제 게임은 되돌아가지 않습니다.</p><ol id="event-list" class="event-list"></ol></section>
+        <section id="panel-results" class="tab-panel" hidden><div class="inspector-title"><div><p class="eyebrow">MATCH REPORT</p><h2 id="winner">5라운드의 여정</h2></div></div><p id="result-summary" class="muted">라운드 정산 후 결과를 확인하세요.</p><div id="charts"></div><div class="table-scroll"><table><thead><tr><th>R</th><th>AI</th><th>베팅</th><th>Hit</th><th>결과</th><th>자본</th></tr></thead><tbody id="records"></tbody></table></div><button id="export" class="light wide">전체 의사결정 기록 저장 ↓</button></section>
+      </aside>
+    </div>
+    <p class="footnote">A는 항상 1점 · 그림 카드는 10점 · 카드 즉시 공개 · 매 라운드 새 덱 · 실제 미래 덱은 AI에 비공개</p>
+  </main>
+  <footer class="control-bar"><div class="play-status"><span id="run-dot" class="dot"></span><div><b id="run-status">시작 전</b><small id="history-position">이벤트 0 / 0</small></div></div><div class="controls"><button id="previous" class="light" title="왼쪽 방향키">← 이전 기록</button><button id="next" class="light" title="오른쪽 방향키">다음 단계 →</button><button id="play" class="primary" title="위/아래 방향키 또는 Space">▶ 자동 실행</button><button id="live" class="text-button">현재로</button></div><span class="keyboard-tip">← → 단계 이동 · Space 재생/정지</span></footer>
+  <dialog id="settings-dialog"><form id="settings-form"><div class="modal-title"><div><p class="eyebrow">EXPERIMENT SETTINGS</p><h2>새로운 실험을 시작하세요.</h2></div><button type="button" id="close-settings" class="text-button" aria-label="설정 닫기">✕</button></div><p class="muted">초기 자본 각 1,000칩 · 총 5라운드</p><div class="settings-grid"><label>최소 베팅<input name="minimum" type="number" min="1" value="50" required></label><label>최대 베팅<input name="maximum" type="number" min="1" value="200" required></label><label>베팅 단위<input name="unit" type="number" min="1" value="50" required></label><label>진행 간격 (ms)<input name="speed" type="number" min="20" value="500" required></label><label>A 탐색 깊이<input name="depth_a" type="number" min="1" max="3" value="2" required></label><label>A 말단당 표본<input name="samples_a" type="number" min="1" max="512" value="32" required></label><label>B 탐색 깊이<input name="depth_b" type="number" min="1" max="3" value="2" required></label><label>B 말단당 표본<input name="samples_b" type="number" min="1" max="512" value="32" required></label><label class="full">랜덤 시드 <span>(비워 두면 새 시드)</span><input name="seed" type="number" value="42"></label></div><div class="rule-note"><b>한 명씩, 턴이 끝날 때까지.</b><p>최초 배분 → 첫 플레이어의 Hit 반복 또는 Stand → 다음 플레이어 → 딜러. Hit 후에도 같은 플레이어가 다시 판단합니다.</p><small>첫 라운드는 무작위 순서, 이후에는 자본 우위 우선·동률이면 역순입니다.</small></div><p id="settings-error" class="error" hidden></p><button class="primary wide" type="submit">새 시뮬레이션 시작 →</button></form></dialog>
+</body>
+</html>
